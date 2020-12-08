@@ -361,13 +361,13 @@
           (else #f)))
   (iter 1 n))
 
-(carmichel-test 10)
+(cal-test 10)
 
-(carmichel-test 561)
+(cal-test 561)
 
-(carmichel-test 1105)
+(cal-test 1105)
 
-(carmichel-test 1729)
+(cal-test 1729)
 
 (define (expmod base exp m)
   (cond ((= exp 0) 1)

@@ -197,7 +197,6 @@ square
 (sqrt-iter 1.0 25)
 
 ;; Exercise 1.8
-;; TODO
 (define (improve-cube y x)
   (/ (+ (/ x (square y)) (* 2 y))
      3))
