@@ -1,3 +1,5 @@
+#lang sicp
+
 (define x
   (- 21 22))
 
@@ -213,4 +215,4 @@ square
 
 (cube 27)
 
-;; 1.1.8 BLack-box abstractions
+;; 1.1.8 Black-box abstractions

@@ -1,3 +1,5 @@
+#lang sicp
+
 ;; Ex 1.29
 (define (sum term a next b)
   (if (> a b)
@@ -150,4 +152,37 @@
 
 (sum-squares-of-primes 1 10)
 
-;; b. TODO
+;; b. the product of all the positive integers less than n that are relatively prime to n
+
+(define n 10) 
+
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+
+(gcd 10 2)
+
+(define (relatively-prime? a b)
+  (= (gcd a b) 1))
+
+(relatively-prime? 10 9)
+
+(define (identity x)
+  x)
+
+(define (always x) 
+  #t)
+
+(define (product-of-relative-primes n)
+  (filtered-accumulate * 1 identity 1 inc n (lambda (x) (relatively-prime? x n))))
+
+;; Example: if n=5
+;; 1, 2, 3, 4 are relative primes of 5
+;; 1 * 2 * 3 * 4 = 24
+(product-of-relative-primes 5) ;; 24
+
+;; Example: if n=10
+;; 1, 3, 7, 9 are relative primes of 10
+(* 1 3 7 9) ;; = 189
+(product-of-relative-primes 10) ;; 189
