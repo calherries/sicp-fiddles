@@ -1,5 +1,3 @@
-#lang sicp 
-
 ;; Ex 1.9
 (define (+ a b)
   (if (= a 0)
