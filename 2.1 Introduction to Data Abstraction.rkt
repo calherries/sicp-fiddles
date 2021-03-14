@@ -213,7 +213,7 @@
     (lambda (x) 
       (f ((n f) x)))))
 
-(define one 
+(define zero 
   (lambda (f) 
     (lambda (x) 
       x)))
