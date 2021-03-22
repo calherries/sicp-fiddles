@@ -685,3 +685,203 @@ b-tree
          (lookup given-key (right-branch set-of-records)))))
 
 ;; Section 2.3.4: TODO practice
+
+;; Representing Leaves
+
+(define (make-leaf symbol weight)
+  (list 'leaf symbol weight))
+(define (leaf? object)
+  (eq? (car object) 'leaf))
+(define (symbol-leaf x) (cadr x))
+(define (weight-leaf x) (caddr x))
+
+;; Representing Huffman trees
+
+(define (make-code-tree left right)
+  (list left
+        right
+        (append (symbols left) 
+                (symbols right))
+        (+ (weight left) (weight right))))
+
+(define (left-branch tree) (car tree))
+(define (right-branch tree) (cadr tree))
+
+(define (symbols tree)
+  (if (leaf? tree)
+      (list (symbol-leaf tree))
+      (caddr tree)))
+
+(define (weight tree)
+  (if (leaf? tree)
+      (weight-leaf tree)
+      (cadddr tree)))
+
+;; The decoding procedure
+
+(define (decode bits tree)
+  (define (decode-1 bits current-branch)
+    (if (null? bits)
+        '()
+        (let ((next-branch
+               (choose-branch 
+                (car bits) 
+                current-branch)))
+          (if (leaf? next-branch)
+              (cons 
+               (symbol-leaf next-branch)
+               (decode-1 (cdr bits) tree))
+              (decode-1 (cdr bits) 
+                        next-branch)))))
+  (decode-1 bits tree))
+
+(define (choose-branch bit branch)
+  (cond ((= bit 0) (left-branch branch))
+        ((= bit 1) (right-branch branch))
+        (else (error "bad bit: 
+               CHOOSE-BRANCH" bit))))
+
+;; Sets of weighted elements
+
+(define (adjoin-set x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set))) 
+         (cons x set))
+        (else 
+         (cons (car set)
+               (adjoin-set x (cdr set))))))
+
+(define (make-leaf-set pairs)
+  (if (null? pairs)
+      '()
+      (let ((pair (car pairs)))
+        (adjoin-set 
+         (make-leaf (car pair)    ; symbol
+                    (cadr pair))  ; frequency
+         (make-leaf-set (cdr pairs))))))
+
+;; Ex 2.67
+
+(define sample-tree
+  (make-code-tree 
+   (make-leaf 'A 4)
+   (make-code-tree
+    (make-leaf 'B 2)
+    (make-code-tree 
+     (make-leaf 'D 1)
+     (make-leaf 'C 1)))))
+
+(define sample-message 
+  '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+
+(decode sample-message sample-tree)
+
+;; Ex 2.68
+
+(define (encode message tree)
+  (if (null? message)
+      '()
+      (append 
+       (encode-symbol (car message) 
+                      tree)
+       (encode (cdr message) tree))))
+
+(define (encode-symbol symbol tree)
+  (if (leaf? tree)
+    (if (eq? symbol (symbol-leaf tree))
+      '()
+      #f)
+    (let ((left-encoding (encode-symbol symbol (left-branch tree)))
+          (right-encoding (encode-symbol symbol (right-branch tree))))
+        (if left-encoding
+            (cons 0 left-encoding)
+            (if right-encoding
+              (cons 1 right-encoding)
+              #f)))))
+
+(encode-symbol 'A sample-tree)
+(encode-symbol 'B sample-tree)
+(encode-symbol 'C sample-tree)
+(encode-symbol 'D sample-tree)
+
+;; Ex 2.69
+
+(define (generate-huffman-tree pairs)
+  (successive-merge 
+   (make-leaf-set pairs)))
+
+(make-leaf-set '((A 4) (B 2) (C 1) (D 1)))
+
+(define (successive-merge wip)
+  (if (null? (cdr wip))
+    ;; there is only one node left, the tree
+    (car wip)
+    ;; remove the two smallest elements from the leaf-set
+    (let ((next-small-tree (make-code-tree (car wip) (cadr wip))))
+      ;; put the result back in the wip
+      (successive-merge (adjoin-set next-small-tree (cddr wip))))))
+
+(define sample-tree2 (successive-merge (make-leaf-set '((A 4) (B 2) (C 1) (D 1)))))
+
+sample-tree
+sample-tree2
+
+(decode sample-message sample-tree2)
+(decode sample-message sample-tree)
+
+;; Ex 2.70
+
+(define leaf-set 
+  '((A 2)
+    (BOOM 1)
+    (GET 2)
+    (JOB 2)
+    (NA 16)
+    (SHA 3)
+    (YIP 9)
+    (WAH 1)))
+
+(define rock-huffman-tree (generate-huffman-tree leaf-set))
+
+rock-huffman-tree
+sample-tree
+
+(define (apply fun args)
+   (eval (cons fun args)))
+
+(apply + (list (count (encode '(GET A JOB) rock-huffman-tree))
+          (count (encode '(SHA NA NA NA NA NA NA NA NA) rock-huffman-tree))
+          (count (encode '(GET A JOB) rock-huffman-tree))
+          (count (encode '(SHA NA NA NA NA NA NA NA NA) rock-huffman-tree))
+          (count (encode '(WAH YIP YIP YIP YIP) rock-huffman-tree))
+          (count (encode '(YIP YIP YIP YIP YIP) rock-huffman-tree))
+          (count (encode '(SHA BOOM) rock-huffman-tree))))
+; => 84
+
+(define (count xs)
+  (if (null? xs)
+    0
+    (+ 1 (count (cdr xs)))))
+
+;; Each word would be 3 bits
+
+(* 3
+(apply + 
+  (map count 
+    (list 
+      '(GET A JOB)
+      '(SHA NA NA NA NA NA NA NA NA)
+      '(GET A JOB)
+      '(SHA NA NA NA NA NA NA NA NA)
+      '(WAH YIP YIP YIP YIP)
+      '(YIP YIP YIP YIP YIP)
+      '(SHA BOOM)))))
+; => 108
+
+;; Ex 2.71
+
+;; Skipping for now.
+
+;; Ex 2.72
+
+;; Skipping for now.
