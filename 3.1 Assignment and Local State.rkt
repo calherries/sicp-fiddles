@@ -177,8 +177,11 @@
 
 ;; Ex 3.8
 
-(define (f x)
+(define f
   (let ((counter -1))
     (lambda (x)
-      (set! counter (+ counter 1))
+      (set! counter (+ counter x))
       (* x counter))))
+
+(+ (f 0) (f 1))
+
